@@ -1,18 +1,18 @@
 #include <Wire.h>
 #include "DHT.h"
-#include <LiquidCrystal_I2C.h>  // I2C LCD를 사용하기 위한 라이브러리 호출하기
+#include <LiquidCrystal_I2C.h>  // Library for LCD
 #include "pitches.h"
 #include <Servo.h>
-LiquidCrystal_I2C TV(0x27, 16, 2);  // I2C LCD를 TV라는 이름으로 선언
-#define DHTPIN 2
+LiquidCrystal_I2C TV(0x27, 16, 2);  // I2C LCD -> TV
+#define DHTPIN 2 //DHT seonsor pin
 #define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
 
 Servo servo;
 
-int piezoPin = 8; // Piezo in Pin 
-int irPin = A3;  // IR Seonsor in Pin A0.
-int cdsPin = A2; //조도센서
+int piezoPin = 8; // Piezo buzzer
+int irPin = A3;  // IR sensor
+int cdsPin = A2; //cds sensor
 int swsv = 5; //Switch for Servomoter
 int angle = 0; //servo moter angle
 
@@ -25,7 +25,7 @@ int A = 1760; // 라
 int B = 1976; // 시
 
 int notes[25] = { G, G, A, A, G, G, E, G, G, E, E, D, G, G, A, A, G, G, E, G, E, D, E, C };
-// 학교종이 땡땡땡 멜로디 작성
+//학교종이 땡땡땡 멜로디
 int tempo = 200;
 
 boolean flag = 1;
@@ -53,12 +53,12 @@ void loop()
 {
   //TV.clear();
   int cdsValue = analogRead(cdsPin);
-  Serial.print("조도 값 : ");
+  Serial.print("조도 값 : "); //cds Value index
   Serial.println(cdsValue);
   int IRval = analogRead(irPin);
 
-  float humidity = dht.readHumidity(); //습도 측정 val
-  float temperature = dht.readTemperature(); //온도 측정 val
+  float humidity = dht.readHumidity(); //humidity - 습도 측정 val
+  float temperature = dht.readTemperature(); //temperature - 온도 측정 val
 
   if(isnan(humidity) || isnan(temperature) ) {
     Serial.println("Failed to read from DHT sensor!");
