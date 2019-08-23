@@ -1,3 +1,7 @@
+//대림대학교 컴퓨터 정보학부
+//Daelim University College dept.Computer Information
+
+
 #include <Wire.h>
 #include "DHT.h"
 #include <LiquidCrystal_I2C.h>  // Library for LCD
@@ -29,6 +33,7 @@ int notes[25] = { G, G, A, A, G, G, E, G, G, E, E, D, G, G, A, A, G, G, E, G, E,
 int tempo = 200;
 
 boolean flag = 1;
+boolean flag2 = 1;
 int numTones = 5;
 //int notes[] = {NOTE_C4, NOTE_G3, NOTE_G3, NOTE_A3, 0, NOTE_B3, NOTE_C4};
 //int noteDurations[] = {4, 8, 8, 4, 4, 4, 4, 4};
@@ -70,9 +75,18 @@ void loop()
   Serial.print((int)humidity);
   Serial.println(" %");
 
-  if(digitalRead(swsv) == LOW)
+  if(digitalRead(swsv) == LOW && flag2 == 1)
   {
+    flag2 = 0;
     servo.write(180);
+    delay(1000);
+  }
+
+  else if(digitalRead(swsv) == LOW && flag2 == 0)
+  {
+    flag2 = 1;
+    servo.write(0);
+    delay(1000);
   }
   
   if(cdsValue > 800) {
