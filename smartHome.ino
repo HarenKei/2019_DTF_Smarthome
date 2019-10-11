@@ -14,12 +14,22 @@ DHT dht(DHTPIN, DHTTYPE);
 
 Servo servo;
 
+void bedTone();
+
+
+//기본적인 센서 핀
 int piezoPin = 8; // Piezo buzzer
 int irPin = A3;  // IR sensor
 int cdsPin = A2; //cds sensor
 int swsv = 5; //Switch for Servomoter
 int angle = 0; //servo moter angle
 
+//cds 센서로 작동되는 RGB LED
+int led_blue = 9;
+int led_green = 10;
+int led_red = 11;
+
+//피에조 부저 음계
 int C = 1047; // 도
 int D = 1175; // 레 
 int E = 1319; // 미 
@@ -49,13 +59,20 @@ void setup()
   TV.begin(); // I2C LCD의 기본 설정
   TV.backlight();  // I2C LCD의 백라이트를 켜줌
   TV.setCursor(0, 0); // I2C LCD의 커서위치를 0, 0으로 설정(첫번째 줄, 첫번째 칸)
-  TV.print("Looking TV...."); // I2C LCD에 "Looking TV...." 메세지 출력
+  //TV.print("Looking TV...."); // I2C LCD에 "Looking TV...." 메세지 출력
   servo.attach(7);
   pinMode(swsv, INPUT_PULLUP);
+  pinMode(led_red, OUTPUT);
+  pinMode(led_green, OUTPUT);
+  pinMode(led_blue, OUTPUT);
 }
 
 void loop()
 {
+  digitalWrite(led_red, LOW);
+  digitalWrite(led_green, LOW);
+  digitalWrite(led_blue, LOW);
+  
   //TV.clear();
   int cdsValue = analogRead(cdsPin);
   Serial.print("조도 값 : "); //cds Value index
@@ -88,12 +105,21 @@ void loop()
     servo.write(0);
     delay(1000);
   }
-  
-  if(cdsValue > 800) {
-    bedTone();
-    delay(300);
-  }
 
+  
+  if(cdsValue > 300) {
+    
+    bedTone();
+    delay(1000);}
+    
+    else{
+    digitalWrite(led_red,HIGH);
+    digitalWrite(led_blue,HIGH);
+    digitalWrite(led_green,HIGH);
+    delay(200);
+    
+    }
+ 
 
   if (IRval < 100 && flag == 1) {          //TV가 켜져있고, 거리가 가깝다면 TV OFF
     flag = 0;
@@ -107,13 +133,19 @@ void loop()
     noTone(piezoPin);
     flag = 1;
     TV.backlight();
-    TV.print("Looking TV....");
+    TV.print("hum : ");
+    TV.print(humidity);
+    TV.print(" %");
+    TV.setCursor(0,1);
+    TV.print("temp : ");
+    TV.print(temperature);
+    TV.print(" C");
   }
 }
 
 void bedTone() {
   for(int i = 0; i < 12; i++) {
     tone(piezoPin, notes[i], tempo);
-    delay(300);
+    delay(3);
   }
 }
