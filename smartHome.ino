@@ -1,5 +1,10 @@
 //대림대학교 컴퓨터 정보학부
 //Daelim University College dept.Computer Information
+
+//블루투스 정보
+//'1' 차고 모터 제어
+
+#include <SoftwareSerial.h>
 #include <Wire.h>
 #include "DHT.h"
 #include <LiquidCrystal_I2C.h>  // Library for LCD
@@ -37,24 +42,33 @@ int A = 1760; // 라
 int B = 1976; // 시
 int notes[25] = { G, G, A, A, G, G, E, G, G, E, E, D, G, G, A, A, G, G, E, G, E, D, E, C };
 //학교종이 땡땡땡 멜로디
+
 int tempo = 200;
+
+boolean lightOnOff = 0; // 0 = Off, 1 = on
 boolean flag = 1;
 boolean flag2 = 1;
 int numTones = 5;
 //int notes[] = {NOTE_C4, NOTE_G3, NOTE_G3, NOTE_A3, 0, NOTE_B3, NOTE_C4};
 //int noteDurations[] = {4, 8, 8, 4, 4, 4, 4, 4};
 // 가까울 시 울릴 경보의 멜로디 작성
+
+SoftwareSerial BTSerial(4,5);
+
 void setup()
 {
   // 시리얼 통신을 위해 통신속도(Baudrate)를 9600으로 설정
   Serial.begin(9600);
+  BTSerial.begin(9600); // 블루투스 통신을 위해 통신속도를 9600으로 설정
+  
   pinMode(piezoPin, OUTPUT); // 피에조 핀을 출력핀으로 설정
   dht.begin();
   TV.begin(); // I2C LCD의 기본 설정
+  
   TV.backlight();  // I2C LCD의 백라이트를 켜줌
   TV.setCursor(0, 0); // I2C LCD의 커서위치를 0, 0으로 설정(첫번째 줄, 첫번째 칸)
-  //TV.print("Looking TV...."); // I2C LCD에 "Looking TV...." 메세지 출력
   servo.attach(12);
+  
   pinMode(swsv, INPUT_PULLUP);
   pinMode(led_red, OUTPUT);
   pinMode(led_green, OUTPUT);
@@ -63,6 +77,9 @@ void setup()
 
 void loop()
 {
+  
+ // data 선언 , 블루투스로 들어오는 통신을 읽어 저장
+    
   digitalWrite(led_red, LOW);
   digitalWrite(led_green, LOW);
   digitalWrite(led_blue, LOW);
@@ -78,32 +95,42 @@ void loop()
     Serial.println("Failed to read from DHT sensor!");
     return;
   }
+  
   Serial.print((int)temperature);
   Serial.print("*C, ");
   Serial.print((int)humidity);
   Serial.println(" %");
-  if(digitalRead(swsv) == LOW)
-  if(digitalRead(swsv) == LOW && flag2 == 1)
+
+    if(BTSerial.available()){
+    byte data = BTSerial.read();
+  if(data == '1' && flag2 == 1)
   {
     flag2 = 0;
+    data = '0';
     servo.write(180);
     delay(1000);
   }
-  else if(digitalRead(swsv) == LOW && flag2 == 0)
+  else if(data == '1'&& flag2 == 0)
   {
     flag2 = 1;
+    data = '0';
     servo.write(0);
     delay(1000);
   }
-
-
+}
   if(cdsValue > 300) {
     bedTone();
+    lightOnOff = 0;
+   
     digitalWrite(led_red,LOW);
     digitalWrite(led_green,LOW);
     digitalWrite(led_blue,LOW);
-    delay(300);}
-    else{
+    delay(300);
+    }
+    
+    
+    else if(cdsValue < 300){
+    lightOnOff = 1;
     
     digitalWrite(led_red,HIGH);
     digitalWrite(led_blue,HIGH);
@@ -131,7 +158,8 @@ void loop()
     TV.print(temperature);
     TV.print(" C");
   }
-}
+  }
+
 
 void bedTone() {
   for(int i = 0; i < 12; i++) {
